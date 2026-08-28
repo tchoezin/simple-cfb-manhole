@@ -1,0 +1,7 @@
+/* Comfortably centered/contained content instead of stretching edge-to-edge
+   on wide screens, while staying legible on narrow screens (FR-007). */
+.app-container {
+  max-width: 720px;
+  margin: 0 auto;
+  padding: 0 1rem 2rem;
+}

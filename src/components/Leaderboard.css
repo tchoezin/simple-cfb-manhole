@@ -1,0 +1,60 @@
+/* Readable at scale (SC-004: at least 50 players / 10 divisions). */
+
+/* Scrolls internally on narrow screens instead of the whole page (FR-007). */
+.leaderboard-scroll {
+  width: 100%;
+  overflow-x: auto;
+}
+
+.leaderboard {
+  width: 100%;
+  max-width: 640px;
+  margin: 0 auto;
+  border-collapse: collapse;
+  font-size: 1rem;
+  color: var(--color-ink);
+}
+
+.leaderboard th,
+.leaderboard td {
+  text-align: left;
+  padding: 0.5rem 0.75rem;
+  border-bottom: 1px solid var(--color-charcoal-light);
+}
+
+.leaderboard th {
+  font-weight: 600;
+  color: var(--color-bronze);
+  border-bottom: 2px solid var(--color-bronze);
+}
+
+/* Alternating row shading for scanability (FR-003). */
+.leaderboard tbody tr:nth-child(even) {
+  background: var(--color-surface-alt);
+}
+
+/* Distinct highlight on hover to confirm what a visitor is looking at
+   (FR-004). */
+.leaderboard tbody tr:hover {
+  background: var(--color-bronze-tint);
+}
+
+/* Hover region for the roster preview dialog (003-hover-player-roster,
+   FR-001–FR-010). inline-block so the hover hit area matches the name
+   text exactly; the dialog itself is `position: fixed`
+   (RosterPreviewDialog.css) so it is never clipped by this table's
+   overflow-x: auto scroll container. */
+.player-name-hover {
+  display: inline-block;
+}
+
+.leaderboard td:first-child,
+.leaderboard th:first-child {
+  width: 3rem;
+}
+
+.leaderboard td:last-child,
+.leaderboard th:last-child {
+  width: 5rem;
+  text-align: right;
+}

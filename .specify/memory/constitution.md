@@ -1,50 +1,105 @@
-# [PROJECT_NAME] Constitution
-<!-- Example: Spec Constitution, TaskFlow Constitution, etc. -->
+<!--
+Sync Impact Report
+- Version change: 1.0.1 → 1.1.0
+- Modified principles: III. Deterministic Scoring from Live Data — changed
+  the data-source rule for conference membership from "live from ESPN" to
+  "hardcoded, manually-maintained list checked into the repo"; game results
+  (winner/loser/completion) remain sourced live from ESPN. This is a
+  behavior change (not wording-only), hence a MINOR bump.
+- Added sections: none
+- Removed sections: none
+- Templates requiring updates:
+  - ✅ .specify/templates/plan-template.md (generic Constitution Check gate, no changes needed)
+  - ✅ .specify/templates/spec-template.md (no changes needed)
+  - ✅ .specify/templates/tasks-template.md (no changes needed)
+  - ✅ .claude/skills/speckit-constitution (this file)
+- Follow-up TODOs: TODO(RATIFICATION_DATE) — original adoption date not supplied by user; set to today's date pending confirmation.
+-->
+
+# cfb-manhole Constitution
 
 ## Core Principles
 
-### [PRINCIPLE_1_NAME]
-<!-- Example: I. Library-First -->
-[PRINCIPLE_1_DESCRIPTION]
-<!-- Example: Every feature starts as a standalone library; Libraries must be self-contained, independently testable, documented; Clear purpose required - no organizational-only libraries -->
+### I. Simplicity First
+The application MUST stay as small and easy to reason about as the leaderboard
+feature it serves. Every addition (dependency, abstraction layer, build step,
+config option) MUST justify itself against the single page it supports —
+a leaderboard showing player name and score. When a simpler approach and a
+more "correct" or extensible one both satisfy the current requirement, the
+simpler one MUST be chosen. Speculative generality (features, config, or
+architecture for hypothetical future needs) is not permitted.
 
-### [PRINCIPLE_2_NAME]
-<!-- Example: II. CLI Interface -->
-[PRINCIPLE_2_DESCRIPTION]
-<!-- Example: Every library exposes functionality via CLI; Text in/out protocol: stdin/args → stdout, errors → stderr; Support JSON + human-readable formats -->
+**Rationale**: This is a small pick-em leaderboard for a friend group, not a
+platform. Complexity added "just in case" costs more in upkeep than it will
+ever save.
 
-### [PRINCIPLE_3_NAME]
-<!-- Example: III. Test-First (NON-NEGOTIABLE) -->
-[PRINCIPLE_3_DESCRIPTION]
-<!-- Example: TDD mandatory: Tests written → User approved → Tests fail → Then implement; Red-Green-Refactor cycle strictly enforced -->
+### II. Frontend-Only, TypeScript + React
+The application MUST be implemented entirely in TypeScript using React, and
+MUST NOT introduce a backend server, database, or persistent server-side
+process. All state (player rosters, division assignments, picks, computed
+scores) MUST be derivable client-side from static/config data and live calls
+to external APIs. Any data that must persist across sessions MUST use
+client-side storage or static config files checked into the repo — not a
+server the team would have to run, deploy, or maintain.
 
-### [PRINCIPLE_4_NAME]
-<!-- Example: IV. Integration Testing -->
-[PRINCIPLE_4_DESCRIPTION]
-<!-- Example: Focus areas requiring integration tests: New library contract tests, Contract changes, Inter-service communication, Shared schemas -->
+**Rationale**: Removing the backend removes an entire category of operational
+concerns (hosting, auth, deployment, uptime) that this project has no need
+for, directly supporting Simplicity First.
 
-### [PRINCIPLE_5_NAME]
-<!-- Example: V. Observability, VI. Versioning & Breaking Changes, VII. Simplicity -->
-[PRINCIPLE_5_DESCRIPTION]
-<!-- Example: Text I/O ensures debuggability; Structured logging required; Or: MAJOR.MINOR.BUILD format; Or: Start simple, YAGNI principles -->
+### III. Deterministic Scoring from Live Data
+Game results (which team won, which lost, whether the game has finished)
+MUST be sourced from the unofficial ESPN College Football API (e.g.
+`https://site.api.espn.com/apis/site/v2/sports/football/college-football/...`).
+Conference membership MUST be sourced from a hardcoded, manually-maintained
+conference-to-teams list checked into the repo (see Additional Constraints
+below), not fetched from ESPN. Given the same team rosters, division
+assignments, hardcoded conference list, and ESPN game results, the scoring
+engine MUST always compute the same scores — the scoring rules are pure
+functions of that data, not stateful or randomized. The point rule MUST be
+applied in this precedence order: (1) 3 points if the losing team is owned
+by another player in the winning team owner's own division, overriding (2) 2
+points if winner and loser shared a conference (per the hardcoded list),
+otherwise (3) 1 point by default — awarded only to the player(s) who own the
+winning team (team ownership is unique per division, so a team may have at
+most one owner per division but different owners across divisions).
 
-## [SECTION_2_NAME]
-<!-- Example: Additional Constraints, Security Requirements, Performance Standards, etc. -->
+**Rationale**: A leaderboard people trust requires scoring that is
+predictable, auditable, and reproducible. Game results change constantly and
+must stay live; conference membership changes rarely (realignment happens a
+few times a decade) but must be *exactly* right for the scoring the league
+cares about, and ESPN's own conference/division grouping data has proven
+inconsistent in practice (e.g. reporting Sun Belt's East/West divisions as
+if they were separate conferences). A hardcoded, human-reviewed list removes
+that inconsistency and gives the league administrator direct control over
+conference accuracy without depending on a third party's internal taxonomy.
 
-[SECTION_2_CONTENT]
-<!-- Example: Technology stack requirements, compliance standards, deployment policies, etc. -->
+## Additional Constraints
 
-## [SECTION_3_NAME]
-<!-- Example: Development Workflow, Review Process, Quality Gates, etc. -->
-
-[SECTION_3_CONTENT]
-<!-- Example: Code review requirements, testing gates, deployment approval process, etc. -->
+- **Stack**: TypeScript + React only. No backend framework, no server-side
+  database, no custom API server.
+- **Data source — game results**: The unofficial ESPN site API is the sole
+  source of live game data (winner, loser, completion status).
+- **Data source — conferences**: A hardcoded conference-to-teams list,
+  checked into the repo as project-owned config/data, is the sole source of
+  conference membership — never fetched from ESPN or any other live source.
+  Player rosters, division assignments, and each player's owned teams remain
+  project-owned config/data as well (static files or client-side storage).
+- **Single page**: The application ships one page — a leaderboard listing
+  each player's name and score, rankable across the whole league regardless
+  of division.
 
 ## Governance
-<!-- Example: Constitution supersedes all other practices; Amendments require documentation, approval, migration plan -->
 
-[GOVERNANCE_RULES]
-<!-- Example: All PRs/reviews must verify compliance; Complexity must be justified; Use [GUIDANCE_FILE] for runtime development guidance -->
+This constitution supersedes ad-hoc technical preferences for this project.
+Any change that adds a backend, a new required framework/language, or
+persistent server infrastructure is a MAJOR amendment and MUST update this
+document with rationale before implementation begins. New principles or
+materially expanded guidance are MINOR amendments. Wording clarifications
+and typo fixes are PATCH amendments.
 
-**Version**: [CONSTITUTION_VERSION] | **Ratified**: [RATIFICATION_DATE] | **Last Amended**: [LAST_AMENDED_DATE]
-<!-- Example: Version: 2.1.1 | Ratified: 2025-06-13 | Last Amended: 2025-07-16 -->
+All plans and specs produced by Spec Kit commands for this project MUST be
+checked against these principles before implementation; a plan that requires
+a backend, a non-TypeScript/React stack, or a non-deterministic scoring path
+MUST either be revised or justified here as an amendment first.
+
+**Version**: 1.1.0 | **Ratified**: TODO(RATIFICATION_DATE): original adoption date not provided | **Last Amended**: 2026-08-27

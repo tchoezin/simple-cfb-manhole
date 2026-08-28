@@ -1,0 +1,21 @@
+.site-header {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.75rem;
+  padding: 0.5rem 0;
+  border-bottom: 2px solid var(--color-bronze);
+  margin-bottom: 1.5rem;
+}
+
+.site-header__logo {
+  width: min(90%, 24rem);
+  height: auto;
+}
+
+.site-header__title {
+  font-size: 1.5rem;
+  font-weight: 700;
+  color: var(--color-ink);
+  letter-spacing: 0.02em;
+}

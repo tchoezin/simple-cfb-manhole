@@ -1,0 +1,24 @@
+/**
+ * Brand design tokens derived from the CFB Manhole logo (FR-002, FR-010).
+ * The site always renders this light palette, regardless of the visitor's
+ * system/OS color-scheme preference — there is no dark-mode variant.
+ * See specs/002-brand-color-refresh/data-model.md for the token table and
+ * specs/002-brand-color-refresh/research.md §1-2 for how each value was
+ * sampled/derived.
+ */
+:root {
+  --color-surface: #ffffff;
+  --color-surface-alt: #f4f1ec;
+  --color-ink: #1a1a1a;
+  --color-bronze: #a46731;
+  --color-bronze-tint: #f1e4d6;
+  --color-charcoal: #393939;
+  --color-charcoal-light: #b3b3b3;
+  --color-warning-surface: #fbe9d9;
+  --color-warning-border: #a46731;
+}
+
+body {
+  background: var(--color-surface);
+  color: var(--color-ink);
+}

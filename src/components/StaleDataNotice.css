@@ -1,0 +1,10 @@
+.stale-data-notice {
+  background: var(--color-warning-surface);
+  border: 1px solid var(--color-warning-border);
+  border-left-width: 4px;
+  color: var(--color-ink);
+  padding: 0.75rem 1rem;
+  border-radius: 4px;
+  margin: 0 auto 1rem;
+  max-width: 640px;
+}

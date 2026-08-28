@@ -1,0 +1,31 @@
+/* Fixed (not absolute) so it is never clipped by .leaderboard-scroll's
+   overflow-x: auto (FR-009) — position is computed in viewport
+   coordinates by src/lib/dialogPosition.ts. */
+.roster-preview-dialog {
+  position: fixed;
+  z-index: 10;
+  min-width: 10rem;
+  max-width: 16rem;
+  padding: 0.5rem 0.75rem;
+  background: var(--color-surface);
+  color: var(--color-ink);
+  border: 1px solid var(--color-bronze);
+  border-radius: 0.25rem;
+  box-shadow: 0 0.25rem 0.75rem rgba(0, 0, 0, 0.2);
+  font-size: 0.875rem;
+}
+
+.roster-preview-dialog ul {
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.roster-preview-dialog li {
+  padding: 0.125rem 0;
+}
+
+.roster-preview-dialog-empty {
+  margin: 0;
+  color: var(--color-charcoal);
+}
