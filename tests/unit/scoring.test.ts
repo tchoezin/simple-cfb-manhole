@@ -311,6 +311,22 @@ describe("computeLeaderboard", () => {
     expect(result.entries.map((e) => e.rank)).toEqual([1, 1, 1]);
   });
 
+  it("orders tied players alphabetically by name (display order only, rank unchanged)", () => {
+    const teams = makeTeams([["gt", "acc"]]);
+    const result = computeLeaderboard(
+      [carol, alice, bob],
+      divisions,
+      teams,
+      new Map(),
+    );
+    expect(result.entries.map((e) => e.player.id)).toEqual([
+      "alice",
+      "bob",
+      "carol",
+    ]);
+    expect(result.entries.map((e) => e.rank)).toEqual([1, 1, 1]);
+  });
+
   it("returns all players at score 0 when no games have finished", () => {
     const teams = makeTeams([["gt", "acc"]]);
     const gamesByTeam = new Map<string, Game[]>([

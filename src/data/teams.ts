@@ -94,7 +94,7 @@ export const teamNames: TeamName[] = [
   { id: "278", name: "Fresno State" },
   { id: "290", name: "Georgia Southern" },
   { id: "295", name: "Old Dominion" },
-  { id: "309", name: "Louisiana (Ragin' Cajuns)" },
+  { id: "309", name: "Louisiana" },
   { id: "324", name: "Coastal Carolina" },
   { id: "326", name: "Texas State" },
   { id: "328", name: "Utah State" },

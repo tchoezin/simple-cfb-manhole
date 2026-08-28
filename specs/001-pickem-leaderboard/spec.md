@@ -21,6 +21,10 @@
 - Q: Is a team's ownership unique across the whole league, or only within a division? → A: Only within a division — no two players *in the same division* may own the same team, but the same team may independently appear on a roster in a different division (e.g., a player in Division A and a player in Division B can both own Georgia Tech).
 - Q: Should conference membership continue to come live from the ESPN data source, or switch to a hardcoded list? → A: Switch to a hardcoded, manually-maintained conference-to-teams list checked into the repo (FR-019) — game results (winner/loser/completion) remain live from ESPN, but conference membership does not. Prompted by the live source reporting conferences with internal divisions (e.g. Sun Belt East/West) as if they were separate conferences, which silently broke the same-conference scoring bonus (FR-005) for affected teams.
 
+### Session 2026-08-28
+
+- Q: Among players who share the same rank (tied score), what order should they be displayed in on the leaderboard? → A: Alphabetically by player name. This is a display/presentation ordering only — it does not change rank values; tied players still share the same rank number (FR-010), consistent with standard competition ranking.
+
 ## User Scenarios & Testing *(mandatory)*
 
 ### User Story 1 - View the league leaderboard (Priority: P1)
@@ -45,7 +49,8 @@ score.
    from highest to lowest score.
 2. **Given** two or more players have the same total score, **When** the
    leaderboard is displayed, **Then** those players are shown adjacent to one
-   another (tied) rather than in an arbitrary or misleading order.
+   another (tied) and ordered alphabetically by name among themselves, rather
+   than in an arbitrary or misleading order.
 3. **Given** no games have finished yet this season, **When** a user opens the
    leaderboard, **Then** every player is listed with a score of 0.
 
@@ -177,7 +182,9 @@ division only ever influences their score via the rivalry bonus.
   which players appear on or are excluded from the leaderboard.
 - **FR-010**: The system MUST reflect players who are tied on score as
   occupying the same rank position on the leaderboard rather than an
-  arbitrary tiebreak order.
+  arbitrary tiebreak order. Among players sharing a rank, the system MUST
+  display them in alphabetical order by player name; this affects display
+  order only and MUST NOT alter their shared rank value.
 - **FR-011**: The system MUST determine each finished game's winner, loser,
   and completion status from an authoritative, regularly updated college
   football data source.
@@ -279,6 +286,8 @@ division only ever influences their score via the rivalry bonus.
   Clarifications; FR-012), since the leaderboard is described as the
   application's only page.
 - Ties in score share the same leaderboard rank (standard competition
-  ranking), with no additional tiebreaker applied.
+  ranking); no tiebreaker changes rank values, but tied players are displayed
+  in alphabetical order by name for a stable, non-arbitrary presentation
+  order (FR-010).
 - No authentication or access control is required; the leaderboard is a
   public, read-only view suitable for casual sharing among league members.

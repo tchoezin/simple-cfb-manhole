@@ -143,7 +143,12 @@ export function computeLeaderboard(
     return { player, total };
   });
 
-  const sorted = [...totals].sort((a, b) => b.total - a.total);
+  const sorted = [...totals].sort((a, b) => {
+    if (b.total !== a.total) return b.total - a.total;
+    // Tied players share a rank (FR-010); order them alphabetically by name
+    // for a stable, non-arbitrary display order — this never changes rank.
+    return a.player.name.localeCompare(b.player.name);
+  });
 
   const entries: LeaderboardEntry[] = [];
   let rank = 0;
