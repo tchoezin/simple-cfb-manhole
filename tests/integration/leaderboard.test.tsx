@@ -348,3 +348,80 @@ describe("Leaderboard (US1 — roster hover preview, 003-hover-player-roster)", 
     expect(screen.getByText(/no teams listed/i)).toBeInTheDocument();
   });
 });
+
+describe("Leaderboard (US1 — hover progress indicator, 005-player-hover-indicator)", () => {
+  beforeEach(() => {
+    vi.useFakeTimers();
+  });
+
+  afterEach(() => {
+    vi.useRealTimers();
+  });
+
+  function renderWithAlice() {
+    const entries: LeaderboardEntry[] = [
+      { player: player("alice", "Alice", "east", ["59"]), total: 12, rank: 1 },
+    ];
+    const teamNamesById = new Map([["59", "Georgia Tech"]]);
+    render(<Leaderboard entries={entries} teamNamesById={teamNamesById} />);
+    return screen.getByText("Alice");
+  }
+
+  function indicator() {
+    return document.body.querySelector(".hover-progress-indicator");
+  }
+
+  it("shows the progress cue immediately on hover, before the 1s dialog threshold (FR-001, SC-001)", () => {
+    const nameEl = renderWithAlice();
+
+    fireEvent.mouseEnter(nameEl);
+
+    expect(indicator()).not.toBeNull();
+    expect(screen.queryByRole("dialog")).not.toBeInTheDocument();
+  });
+
+  it("removes the cue and opens no dialog if the pointer leaves before 1s (FR-003)", () => {
+    const nameEl = renderWithAlice();
+
+    fireEvent.mouseEnter(nameEl);
+    act(() => {
+      vi.advanceTimersByTime(500);
+    });
+    fireEvent.mouseLeave(nameEl);
+
+    expect(indicator()).toBeNull();
+
+    act(() => {
+      vi.advanceTimersByTime(1000);
+    });
+    expect(screen.queryByRole("dialog")).not.toBeInTheDocument();
+  });
+
+  it("hides the cue the moment the roster dialog opens (FR-004, SC-003)", () => {
+    const nameEl = renderWithAlice();
+
+    fireEvent.mouseEnter(nameEl);
+    expect(indicator()).not.toBeNull();
+
+    act(() => {
+      vi.advanceTimersByTime(1000);
+    });
+
+    expect(screen.getByRole("dialog")).toBeInTheDocument();
+    expect(indicator()).toBeNull();
+  });
+
+  it("shows the cue again on a fresh hover after leaving early (FR-006)", () => {
+    const nameEl = renderWithAlice();
+
+    fireEvent.mouseEnter(nameEl);
+    act(() => {
+      vi.advanceTimersByTime(500);
+    });
+    fireEvent.mouseLeave(nameEl);
+    expect(indicator()).toBeNull();
+
+    fireEvent.mouseEnter(nameEl);
+    expect(indicator()).not.toBeNull();
+  });
+});
