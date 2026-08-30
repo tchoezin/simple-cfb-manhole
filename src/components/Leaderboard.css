@@ -48,6 +48,32 @@
   display: inline-block;
 }
 
+/* Progress/loading cue shown at the cursor during the pre-dialog hover
+   hold (005-player-hover-indicator, FR-001–FR-004). A small ring that
+   spins once over the same HOVER_DELAY_MS (1s) as the roster dialog's
+   hover timer (Leaderboard.tsx), implicitly signaling that a dialog is
+   about to open; it is unmounted (not just hidden) once the hold ends,
+   so the animation always restarts fresh on re-entry (FR-006).
+   `position: fixed` + inline `left`/`top` (set from the latest
+   mousemove coordinates) lets it track the cursor anywhere on screen;
+   `pointer-events: none` keeps it from intercepting hover itself. */
+.hover-progress-indicator {
+  position: fixed;
+  width: 0.625rem;
+  height: 0.625rem;
+  border-radius: 50%;
+  border: 2px solid var(--color-charcoal-light);
+  border-top-color: var(--color-bronze);
+  animation: hover-progress-spin 1s linear 1 forwards;
+  pointer-events: none;
+}
+
+@keyframes hover-progress-spin {
+  to {
+    transform: rotate(360deg);
+  }
+}
+
 .leaderboard td:first-child,
 .leaderboard th:first-child {
   width: 3rem;

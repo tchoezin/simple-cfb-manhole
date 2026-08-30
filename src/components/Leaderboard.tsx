@@ -19,6 +19,16 @@
  * pair, the close is skipped (see handleLeaveName/handleLeaveDialog
  * below). The dialog is positioned flush against the anchor (zero gap,
  * src/lib/dialogPosition.ts) so that transition is a direct one.
+ *
+ * During that same 1s hold, a small progress/loading cue follows the
+ * cursor (005-player-hover-indicator, FR-001–FR-004): it renders at
+ * `cursorPos` (updated on `mouseMove` over the name) while
+ * `hoveringPlayerId` is set for that player and the dialog isn't open
+ * yet, and disappears the instant the dialog opens or the pointer leaves
+ * early — see handleEnterName/handleMoveName/close below. It is
+ * `position: fixed` with `pointer-events: none` so it tracks the cursor
+ * anywhere on screen without being clipped by the table's `overflow-x:
+ * auto` scroll container and without itself intercepting hover events.
  */
 import { useLayoutEffect, useRef, useState } from "react";
 import type { MouseEvent as ReactMouseEvent } from "react";
@@ -54,6 +64,18 @@ export function Leaderboard({
   const [dialogStyle, setDialogStyle] = useState<
     { top: number; left: number } | undefined
   >(undefined);
+  // Which player's name currently has a hover hold in progress (set on
+  // mouseenter, cleared by close()). The progress cue itself only renders
+  // while this matches the current row AND the dialog isn't open yet for
+  // it (005-player-hover-indicator, FR-004) — see the render below.
+  const [hoveringPlayerId, setHoveringPlayerId] = useState<string | null>(
+    null,
+  );
+  // Latest cursor position while a hover hold is in progress, used to
+  // position the progress cue next to the pointer rather than the name.
+  const [cursorPos, setCursorPos] = useState<{ x: number; y: number } | null>(
+    null,
+  );
 
   const timerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const wrapperRefs = useRef(new Map<string, HTMLSpanElement>());
@@ -62,15 +84,24 @@ export function Leaderboard({
   const namesById = teamNamesById ?? new Map<string, string>();
   const divisionsLookup = divisionsById ?? new Map<string, Division>();
 
-  function handleEnterName(playerId: string) {
+  function handleEnterName(playerId: string, event: ReactMouseEvent) {
     if (timerRef.current !== null) {
       clearTimeout(timerRef.current);
     }
-    // FR-007: always a fresh 1s timer on (re-)entry.
+    // FR-007 (003) / FR-006 (005): always a fresh 1s timer, and a fresh
+    // progress cue, on (re-)entry.
+    setHoveringPlayerId(playerId);
+    setCursorPos({ x: event.clientX, y: event.clientY });
     timerRef.current = setTimeout(() => {
       setDialogOpenForPlayerId(playerId);
       timerRef.current = null;
     }, HOVER_DELAY_MS);
+  }
+
+  // Keeps the progress cue tracking the pointer while it stays over the
+  // name during the hold.
+  function handleMoveName(event: ReactMouseEvent) {
+    setCursorPos({ x: event.clientX, y: event.clientY });
   }
 
   function close() {
@@ -80,6 +111,8 @@ export function Leaderboard({
     }
     setDialogOpenForPlayerId(null);
     setDialogStyle(undefined);
+    setHoveringPlayerId(null);
+    setCursorPos(null);
   }
 
   /** True if `node` is the currently-open dialog, or inside it. */
@@ -153,10 +186,21 @@ export function Leaderboard({
                       if (el) wrapperRefs.current.set(playerId, el);
                       else wrapperRefs.current.delete(playerId);
                     }}
-                    onMouseEnter={() => handleEnterName(playerId)}
+                    onMouseEnter={(event) => handleEnterName(playerId, event)}
+                    onMouseMove={handleMoveName}
                     onMouseLeave={(event) => handleLeaveName(playerId, event)}
                   >
                     {entry.player.name}
+                    {hoveringPlayerId === playerId && !isOpen && cursorPos && (
+                      <span
+                        className="hover-progress-indicator"
+                        aria-hidden="true"
+                        style={{
+                          left: cursorPos.x + 12,
+                          top: cursorPos.y + 12,
+                        }}
+                      />
+                    )}
                     {isOpen && (
                       <RosterPreviewDialog
                         ref={dialogRef}
