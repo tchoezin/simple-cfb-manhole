@@ -11,7 +11,7 @@ results directly from ESPN's unofficial site API in the browser.
 ## Development
 
 ```bash
-npm install
+npm ci           # install exact versions from package-lock.json
 npm run dev      # start the Vite dev server
 npm run test     # run the Vitest suite
 npm run build    # produce a static production build in dist/
