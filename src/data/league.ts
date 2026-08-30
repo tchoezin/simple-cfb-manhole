@@ -18,7 +18,7 @@
  */
 import type { Division, Player } from "../types/league";
 
-export const divisions: Division[] = [{ id: "division-1", name: "Division 1" }];
+export const divisions: Division[] = [{ id: "division-1", name: "1" }];
 
 export const players: Player[] = [
   {

@@ -13,6 +13,7 @@ import { teamNames } from "./data/teams";
 import { fetchOwnedTeamGames } from "./lib/espn";
 import { buildTeamsById } from "./lib/conferences";
 import { buildTeamNamesById } from "./lib/teams";
+import { buildDivisionsById } from "./lib/divisions";
 import { loadScores, saveScores } from "./lib/cache";
 import { computeLeaderboard } from "./lib/scoring";
 import type { Game, LeaderboardResult } from "./types/league";
@@ -64,6 +65,9 @@ export default function App() {
   // Team display names are static/hardcoded (FR-005) — build the lookup
   // once, no network call involved.
   const teamNamesById = useMemo(() => buildTeamNamesById(teamNames), []);
+  // Division display names (004-division-column) — same static source
+  // already used by computeLeaderboard's rivalry-bonus logic.
+  const divisionsById = useMemo(() => buildDivisionsById(divisions), []);
 
   useEffect(() => {
     let cancelled = false;
@@ -90,6 +94,7 @@ export default function App() {
           <Leaderboard
             entries={state.result.entries}
             teamNamesById={teamNamesById}
+            divisionsById={divisionsById}
           />
         </>
       )}
@@ -97,6 +102,7 @@ export default function App() {
         <Leaderboard
           entries={state.result.entries}
           teamNamesById={teamNamesById}
+          divisionsById={divisionsById}
         />
       )}
     </main>

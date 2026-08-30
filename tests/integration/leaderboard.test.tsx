@@ -100,12 +100,66 @@ describe("Leaderboard (US3 — divisions never split the display)", () => {
     render(<Leaderboard entries={entries} />);
 
     // Exactly one table, one header row + one row per player — no
-    // per-division sub-tables or headers.
+    // per-division sub-tables or headers. Each player's own division
+    // still renders inline in that row's Division column
+    // (004-division-column, FR-001–FR-002) — it just never groups/splits
+    // the list itself.
     expect(screen.getAllByRole("table")).toHaveLength(1);
     const rows = screen.getAllByRole("row").slice(1);
     expect(rows).toHaveLength(4);
-    expect(screen.queryByText(/east/i)).not.toBeInTheDocument();
-    expect(screen.queryByText(/west/i)).not.toBeInTheDocument();
+    expect(rows[0]).toHaveTextContent("east");
+    expect(rows[1]).toHaveTextContent("west");
+    expect(rows[2]).toHaveTextContent("east");
+    expect(rows[3]).toHaveTextContent("west");
+  });
+});
+
+describe("Leaderboard (US1 — division column, 004-division-column)", () => {
+  it("renders a Division column header (FR-001)", () => {
+    render(<Leaderboard entries={[]} />);
+
+    expect(screen.getByRole("columnheader", { name: "Division" })).toBeInTheDocument();
+  });
+
+  it("shows each player's resolved division name in their row (FR-002)", () => {
+    const entries: LeaderboardEntry[] = [
+      { player: player("alice", "Alice", "division-1"), total: 12, rank: 1 },
+    ];
+    const divisionsById = new Map([["division-1", { id: "division-1", name: "Division 1" }]]);
+
+    render(<Leaderboard entries={entries} divisionsById={divisionsById} />);
+
+    const rows = screen.getAllByRole("row").slice(1);
+    expect(rows[0]).toHaveTextContent("Division 1");
+  });
+
+  it("falls back to the raw division id when it doesn't match any known division (FR-005 edge case)", () => {
+    const entries: LeaderboardEntry[] = [
+      { player: player("alice", "Alice", "unknown-division"), total: 12, rank: 1 },
+    ];
+    const divisionsById = new Map([["division-1", { id: "division-1", name: "Division 1" }]]);
+
+    render(<Leaderboard entries={entries} divisionsById={divisionsById} />);
+
+    const rows = screen.getAllByRole("row").slice(1);
+    expect(rows[0]).toHaveTextContent("unknown-division");
+  });
+
+  it("does not change rank order or alphabetical tie-breaking after adding the column (FR-004, SC-002)", () => {
+    const entries: LeaderboardEntry[] = [
+      { player: player("bob", "Bob", "division-1"), total: 5, rank: 1 },
+      { player: player("alice", "Alice", "division-1"), total: 5, rank: 1 },
+      { player: player("carol", "Carol", "division-1"), total: 2, rank: 3 },
+    ];
+    const divisionsById = new Map([["division-1", { id: "division-1", name: "Division 1" }]]);
+
+    render(<Leaderboard entries={entries} divisionsById={divisionsById} />);
+
+    const rows = screen.getAllByRole("row").slice(1);
+    expect(rows).toHaveLength(3);
+    expect(rows[0]).toHaveTextContent("Bob");
+    expect(rows[1]).toHaveTextContent("Alice");
+    expect(rows[2]).toHaveTextContent("Carol");
   });
 });
 

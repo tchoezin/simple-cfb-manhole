@@ -53,8 +53,20 @@
   width: 3rem;
 }
 
+/* Score absorbs all leftover table width (its text stays right-aligned
+   regardless of how wide the cell itself is), so Player and Division
+   below shrink to fit their content and sit snug together on the left,
+   the same way Rank already sits snug against Player. */
 .leaderboard td:last-child,
 .leaderboard th:last-child {
-  width: 5rem;
+  width: 100%;
   text-align: right;
+}
+
+.leaderboard th:nth-child(2),
+.leaderboard td:nth-child(2),
+.leaderboard th:nth-child(3),
+.leaderboard td:nth-child(3) {
+  width: 1%;
+  white-space: nowrap;
 }
