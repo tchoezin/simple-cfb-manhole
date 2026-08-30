@@ -1,8 +1,10 @@
 /**
  * Ranked table of every player and their score (FR-001, FR-002, FR-010).
  * Always one combined list — never grouped, sorted, or filtered by
- * division; `divisionId` only ever feeds the rivalry-bonus calculation in
- * src/lib/scoring.ts, not this rendering (FR-002, FR-009).
+ * division; `divisionId` feeds the rivalry-bonus calculation in
+ * src/lib/scoring.ts and, since 004-division-column, is also displayed
+ * (read-only) in a Division column — neither use ever groups, filters, or
+ * re-ranks this table.
  *
  * Also owns the roster-hover-preview interaction (003-hover-player-roster,
  * FR-001–FR-010): hovering a player's name for 1s opens a dialog listing
@@ -20,8 +22,9 @@
  */
 import { useLayoutEffect, useRef, useState } from "react";
 import type { MouseEvent as ReactMouseEvent } from "react";
-import type { LeaderboardEntry } from "../types/league";
+import type { Division, LeaderboardEntry } from "../types/league";
 import { resolveTeamNames } from "../lib/teams";
+import { resolveDivisionName } from "../lib/divisions";
 import { clampToViewport } from "../lib/dialogPosition";
 import { RosterPreviewDialog } from "./RosterPreviewDialog";
 import "./Leaderboard.css";
@@ -34,9 +37,17 @@ export interface LeaderboardProps {
    * (dialog falls back to raw ids) so existing callers/tests that don't
    * pass it keep working. */
   teamNamesById?: Map<string, string>;
+  /** divisionId -> Division lookup (src/lib/divisions.ts). Defaults to
+   * empty (Division column falls back to the raw id) so existing
+   * callers/tests that don't pass it keep working. */
+  divisionsById?: Map<string, Division>;
 }
 
-export function Leaderboard({ entries, teamNamesById }: LeaderboardProps) {
+export function Leaderboard({
+  entries,
+  teamNamesById,
+  divisionsById,
+}: LeaderboardProps) {
   const [dialogOpenForPlayerId, setDialogOpenForPlayerId] = useState<
     string | null
   >(null);
@@ -49,6 +60,7 @@ export function Leaderboard({ entries, teamNamesById }: LeaderboardProps) {
   const dialogRef = useRef<HTMLDivElement | null>(null);
 
   const namesById = teamNamesById ?? new Map<string, string>();
+  const divisionsLookup = divisionsById ?? new Map<string, Division>();
 
   function handleEnterName(playerId: string) {
     if (timerRef.current !== null) {
@@ -123,6 +135,7 @@ export function Leaderboard({ entries, teamNamesById }: LeaderboardProps) {
           <tr>
             <th scope="col">Rank</th>
             <th scope="col">Player</th>
+            <th scope="col">Division</th>
             <th scope="col">Score</th>
           </tr>
         </thead>
@@ -161,6 +174,7 @@ export function Leaderboard({ entries, teamNamesById }: LeaderboardProps) {
                     )}
                   </span>
                 </td>
+                <td>{resolveDivisionName(entry.player.divisionId, divisionsLookup)}</td>
                 <td>{entry.total}</td>
               </tr>
             );
