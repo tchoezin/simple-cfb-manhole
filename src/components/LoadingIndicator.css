@@ -1,0 +1,26 @@
+/* Rotating ring spinner shown while the leaderboard loads
+   (006-loading-indicator, FR-002, FR-006). Uses the existing brand accent
+   token so it matches the app's warning/notice styling elsewhere. */
+.loading-indicator {
+  width: 2rem;
+  height: 2rem;
+  margin: 2rem auto;
+  border: 3px solid var(--color-bronze-tint);
+  border-top-color: var(--color-bronze);
+  border-radius: 50%;
+  animation: loading-indicator-spin 0.8s linear infinite;
+}
+
+@keyframes loading-indicator-spin {
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+/* FR-005, SC-003: no spin animation for users who prefer reduced motion —
+   render as a static ring instead. */
+@media (prefers-reduced-motion: reduce) {
+  .loading-indicator {
+    animation: none;
+  }
+}
