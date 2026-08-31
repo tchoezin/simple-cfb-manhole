@@ -20,6 +20,7 @@ import type { Game, LeaderboardResult } from "./types/league";
 import { Leaderboard } from "./components/Leaderboard";
 import { StaleDataNotice } from "./components/StaleDataNotice";
 import { Header } from "./components/Header";
+import { LoadingIndicator } from "./components/LoadingIndicator";
 import "./App.css";
 
 // FR-016: current season only — no season selector.
@@ -82,7 +83,7 @@ export default function App() {
   return (
     <main className="app-container">
       <Header />
-      {state.status === "loading" && <p>Loading leaderboard…</p>}
+      {state.status === "loading" && <LoadingIndicator />}
       {state.status === "unavailable" && (
         <p role="alert">
           Scores are currently unavailable. Please try again later.

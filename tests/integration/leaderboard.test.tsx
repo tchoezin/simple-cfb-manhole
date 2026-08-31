@@ -3,6 +3,7 @@ import { act, fireEvent, render, screen } from "@testing-library/react";
 import { Leaderboard } from "../../src/components/Leaderboard";
 import { Header } from "../../src/components/Header";
 import { StaleDataNotice } from "../../src/components/StaleDataNotice";
+import { LoadingIndicator } from "../../src/components/LoadingIndicator";
 import type { LeaderboardEntry, Player } from "../../src/types/league";
 
 function player(
@@ -346,6 +347,29 @@ describe("Leaderboard (US1 — roster hover preview, 003-hover-player-roster)", 
     });
 
     expect(screen.getByText(/no teams listed/i)).toBeInTheDocument();
+  });
+});
+
+describe("LoadingIndicator (006-loading-indicator)", () => {
+  it("renders a spinner element", () => {
+    const { container } = render(<LoadingIndicator />);
+
+    expect(container.querySelector(".loading-indicator")).not.toBeNull();
+  });
+
+  it("is hidden from assistive technology and exposes no accessible text (FR-004)", () => {
+    const { container } = render(<LoadingIndicator />);
+
+    const root = container.querySelector(".loading-indicator");
+    expect(root).toHaveAttribute("aria-hidden", "true");
+    expect(screen.queryByText("Loading leaderboard…")).toBeNull();
+    expect(screen.queryByText(/loading/i)).toBeNull();
+  });
+
+  it("renders with no visible text content", () => {
+    const { container } = render(<LoadingIndicator />);
+
+    expect(container.textContent).toBe("");
   });
 });
 
