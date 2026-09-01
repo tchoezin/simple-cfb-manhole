@@ -33,12 +33,6 @@
   background: var(--color-surface-alt);
 }
 
-/* Distinct highlight on hover to confirm what a visitor is looking at
-   (FR-004). */
-.leaderboard tbody tr:hover {
-  background: var(--color-bronze-tint);
-}
-
 /* Hover region for the roster preview dialog (003-hover-player-roster,
    FR-001–FR-010). inline-block so the hover hit area matches the name
    text exactly; the dialog itself is `position: fixed`
