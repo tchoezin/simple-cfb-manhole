@@ -2,9 +2,10 @@
  * Ranked table of every player and their score (FR-001, FR-002, FR-010).
  * Always one combined list — never grouped, sorted, or filtered by
  * division; `divisionId` feeds the rivalry-bonus calculation in
- * src/lib/scoring.ts and, since 004-division-column, is also displayed
- * (read-only) in a Division column — neither use ever groups, filters, or
- * re-ranks this table.
+ * src/lib/scoring.ts and, since 008-player-division-merge, is also
+ * displayed (read-only) inline in the Player (Division) column as
+ * `Name (Division)` — neither use ever groups, filters, or re-ranks this
+ * table.
  *
  * Also owns the roster-hover-preview interaction (003-hover-player-roster,
  * FR-001–FR-010): hovering a player's name for 1s opens a dialog listing
@@ -48,8 +49,8 @@ export interface LeaderboardProps {
    * pass it keep working. */
   teamNamesById?: Map<string, string>;
   /** divisionId -> Division lookup (src/lib/divisions.ts). Defaults to
-   * empty (Division column falls back to the raw id) so existing
-   * callers/tests that don't pass it keep working. */
+   * empty (the Player (Division) column falls back to the raw id) so
+   * existing callers/tests that don't pass it keep working. */
   divisionsById?: Map<string, Division>;
 }
 
@@ -167,8 +168,7 @@ export function Leaderboard({
         <thead>
           <tr>
             <th scope="col">Rank</th>
-            <th scope="col">Player</th>
-            <th scope="col">Division</th>
+            <th scope="col">Player (Division)</th>
             <th scope="col">Score</th>
           </tr>
         </thead>
@@ -190,7 +190,7 @@ export function Leaderboard({
                     onMouseMove={handleMoveName}
                     onMouseLeave={(event) => handleLeaveName(playerId, event)}
                   >
-                    {entry.player.name}
+                    {entry.player.name} ({resolveDivisionName(entry.player.divisionId, divisionsLookup)})
                     {hoveringPlayerId === playerId && !isOpen && cursorPos && (
                       <span
                         className="hover-progress-indicator"
@@ -218,7 +218,6 @@ export function Leaderboard({
                     )}
                   </span>
                 </td>
-                <td>{resolveDivisionName(entry.player.divisionId, divisionsLookup)}</td>
                 <td>{entry.total}</td>
               </tr>
             );

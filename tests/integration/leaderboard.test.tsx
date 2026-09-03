@@ -102,39 +102,44 @@ describe("Leaderboard (US3 — divisions never split the display)", () => {
 
     // Exactly one table, one header row + one row per player — no
     // per-division sub-tables or headers. Each player's own division
-    // still renders inline in that row's Division column
-    // (004-division-column, FR-001–FR-002) — it just never groups/splits
-    // the list itself.
+    // still renders inline in that row's merged Player (Division) column
+    // (008-player-division-merge, FR-001–FR-003) — it just never
+    // groups/splits the list itself.
     expect(screen.getAllByRole("table")).toHaveLength(1);
     const rows = screen.getAllByRole("row").slice(1);
     expect(rows).toHaveLength(4);
-    expect(rows[0]).toHaveTextContent("east");
-    expect(rows[1]).toHaveTextContent("west");
-    expect(rows[2]).toHaveTextContent("east");
-    expect(rows[3]).toHaveTextContent("west");
+    expect(rows[0]).toHaveTextContent("Alice (east)");
+    expect(rows[1]).toHaveTextContent("Dan (west)");
+    expect(rows[2]).toHaveTextContent("Bob (east)");
+    expect(rows[3]).toHaveTextContent("Erin (west)");
   });
 });
 
-describe("Leaderboard (US1 — division column, 004-division-column)", () => {
-  it("renders a Division column header (FR-001)", () => {
+describe("Leaderboard (US1 — merged Player (Division) column, 008-player-division-merge)", () => {
+  it("renders a single Player (Division) column header and no separate Division header (FR-001, FR-002)", () => {
     render(<Leaderboard entries={[]} />);
 
-    expect(screen.getByRole("columnheader", { name: "Division" })).toBeInTheDocument();
+    expect(
+      screen.getByRole("columnheader", { name: "Player (Division)" }),
+    ).toBeInTheDocument();
+    expect(
+      screen.queryByRole("columnheader", { name: "Division" }),
+    ).not.toBeInTheDocument();
   });
 
-  it("shows each player's resolved division name in their row (FR-002)", () => {
+  it("shows each player's name followed by a space and their resolved division in parentheses (FR-003, FR-004)", () => {
     const entries: LeaderboardEntry[] = [
-      { player: player("alice", "Alice", "division-1"), total: 12, rank: 1 },
+      { player: player("red", "Red", "division-4"), total: 12, rank: 1 },
     ];
-    const divisionsById = new Map([["division-1", { id: "division-1", name: "Division 1" }]]);
+    const divisionsById = new Map([["division-4", { id: "division-4", name: "4" }]]);
 
     render(<Leaderboard entries={entries} divisionsById={divisionsById} />);
 
     const rows = screen.getAllByRole("row").slice(1);
-    expect(rows[0]).toHaveTextContent("Division 1");
+    expect(rows[0]).toHaveTextContent("Red (4)");
   });
 
-  it("falls back to the raw division id when it doesn't match any known division (FR-005 edge case)", () => {
+  it("falls back to the raw division id when it doesn't match any known division (FR-004 edge case)", () => {
     const entries: LeaderboardEntry[] = [
       { player: player("alice", "Alice", "unknown-division"), total: 12, rank: 1 },
     ];
@@ -143,10 +148,10 @@ describe("Leaderboard (US1 — division column, 004-division-column)", () => {
     render(<Leaderboard entries={entries} divisionsById={divisionsById} />);
 
     const rows = screen.getAllByRole("row").slice(1);
-    expect(rows[0]).toHaveTextContent("unknown-division");
+    expect(rows[0]).toHaveTextContent("Alice (unknown-division)");
   });
 
-  it("does not change rank order or alphabetical tie-breaking after adding the column (FR-004, SC-002)", () => {
+  it("does not change rank order or alphabetical tie-breaking after merging the column (FR-006, SC-002)", () => {
     const entries: LeaderboardEntry[] = [
       { player: player("bob", "Bob", "division-1"), total: 5, rank: 1 },
       { player: player("alice", "Alice", "division-1"), total: 5, rank: 1 },
@@ -158,9 +163,9 @@ describe("Leaderboard (US1 — division column, 004-division-column)", () => {
 
     const rows = screen.getAllByRole("row").slice(1);
     expect(rows).toHaveLength(3);
-    expect(rows[0]).toHaveTextContent("Bob");
-    expect(rows[1]).toHaveTextContent("Alice");
-    expect(rows[2]).toHaveTextContent("Carol");
+    expect(rows[0]).toHaveTextContent("Bob (Division 1)");
+    expect(rows[1]).toHaveTextContent("Alice (Division 1)");
+    expect(rows[2]).toHaveTextContent("Carol (Division 1)");
   });
 });
 
@@ -182,7 +187,7 @@ describe("Leaderboard (US1 — roster hover preview, 003-hover-player-roster)", 
       ["333", "Alabama"],
     ]);
     render(<Leaderboard entries={entries} teamNamesById={teamNamesById} />);
-    return screen.getByText("Alice");
+    return screen.getByText("Alice (east)");
   }
 
   it("opens a dialog with team names after 1 continuous second of hover (FR-001, FR-002)", () => {
@@ -307,7 +312,7 @@ describe("Leaderboard (US1 — roster hover preview, 003-hover-player-roster)", 
     ]);
     render(<Leaderboard entries={entries} teamNamesById={teamNamesById} />);
 
-    const aliceEl = screen.getByText("Alice");
+    const aliceEl = screen.getByText("Alice (east)");
     fireEvent.mouseEnter(aliceEl);
     act(() => {
       vi.advanceTimersByTime(1000);
@@ -315,7 +320,7 @@ describe("Leaderboard (US1 — roster hover preview, 003-hover-player-roster)", 
     expect(screen.getByText("Georgia Tech")).toBeInTheDocument();
 
     fireEvent.mouseLeave(aliceEl);
-    const bobEl = screen.getByText("Bob");
+    const bobEl = screen.getByText("Bob (west)");
     fireEvent.mouseEnter(bobEl);
     act(() => {
       vi.advanceTimersByTime(1000);
@@ -388,7 +393,7 @@ describe("Leaderboard (US1 — hover progress indicator, 005-player-hover-indica
     ];
     const teamNamesById = new Map([["59", "Georgia Tech"]]);
     render(<Leaderboard entries={entries} teamNamesById={teamNamesById} />);
-    return screen.getByText("Alice");
+    return screen.getByText("Alice (east)");
   }
 
   function indicator() {
