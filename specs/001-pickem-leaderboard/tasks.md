@@ -91,7 +91,7 @@ the full `scorePlayerGame` pseudocode.
 
 ### Tests for User Story 2
 
-- [X] T017 [P] [US2] Unit tests for `scorePlayerGame` covering: owned team wins with no bonus → 1, owned team wins vs. same-conference opponent → 2, owned team wins vs. a team owned by another player in the same division → 3 (overrides conference bonus even when both would apply), owned team loses → 0, unfinished game → 0, neither team owned → 0 for everyone, single-player division has no possible rival → falls back to default/conference rule, same team owned by different players in different divisions scores each independently, and a same-division ownership collision in fixture data (two players in one division both listing the same team id) is detectable (e.g., a `findDivisionOwnershipCollisions(players)` helper flags it, per FR-017) in `tests/unit/scoring.test.ts`
+- [X] T017 [P] [US2] Unit tests for `scorePlayerGame` covering: owned team wins with no bonus → 1, owned team wins vs. same-conference opponent → 2, owned team wins vs. a team owned by another player in the same division → 3 (overrides conference bonus even when both would apply), owned team wins vs. another team owned by that same player ("cannibalization") → 3, owned team loses → 0, unfinished game → 0, neither team owned → 0 for everyone, single-player division has no possible rival → falls back to default/conference rule, same team owned by different players in different divisions scores each independently, and a same-division ownership collision in fixture data (two players in one division both listing the same team id) is detectable (e.g., a `findDivisionOwnershipCollisions(players)` helper flags it, per FR-017) in `tests/unit/scoring.test.ts`
 
 ### Implementation for User Story 2
 

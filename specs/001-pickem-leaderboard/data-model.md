@@ -140,8 +140,10 @@ scorePlayerGame(player, game, teams, divisionOwnership) -> 0 | 1 | 2 | 3
     winnerConf = teams[game.winnerTeamId].conferenceId
     loserConf  = teams[game.loserTeamId].conferenceId
     rivalOwnerId = divisionOwnership[player.divisionId].get(game.loserTeamId)
-    if rivalOwnerId is not None and rivalOwnerId !== player.id:
-      return 3                          # FR-006, overrides conference bonus
+    if rivalOwnerId is not None:
+      return 3                          # FR-006, overrides conference bonus;
+                                         # also covers cannibalization, where
+                                         # rivalOwnerId === player.id
     elif winnerConf === loserConf:
       return 2                          # FR-005
     else:

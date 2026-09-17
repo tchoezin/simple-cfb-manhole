@@ -134,6 +134,11 @@ division only ever influences their score via the rivalry bonus.
   applies instead.
 - What happens if a player's owned team loses a game? That player receives 0
   points for that game (they cannot score on a loss).
+- What happens when a player owns both the winning and losing team in the
+  same game ("cannibalization")? The rivalry bonus (3 points) still applies
+  to that player, the same as if a different division rival had owned the
+  losing team — owning the losing team yourself does not disqualify you from
+  the bonus.
 - What happens when the same team is owned by different players in different
   divisions and that team wins a game? Each owner is scored independently
   and simultaneously for that win (each applying their own division's
@@ -166,11 +171,13 @@ division only ever influences their score via the rivalry bonus.
   1) to each player who owns the winning team, unless the rivalry bonus
   (FR-006) applies to that player.
 - **FR-006**: For each finished game, for each player who owns the winning
-  team, if the losing team is also owned by another player who shares that
-  winning-team owner's division, the system MUST award 3 points to the
-  winning team's owner — this rivalry bonus overrides (does not stack with)
-  the same-conference bonus, and is evaluated independently per owner when
-  the winning team has owners in more than one division.
+  team, if the losing team is also owned by a player who shares that
+  winning-team owner's division — including the winning team's owner
+  themself owning the losing team too ("cannibalization") — the system MUST
+  award 3 points to the winning team's owner — this rivalry bonus overrides
+  (does not stack with) the same-conference bonus, and is evaluated
+  independently per owner when the winning team has owners in more than one
+  division.
 - **FR-007**: The system MUST award 0 points to a player for a game where
   that player owns the losing team, and 0 points to anyone for a game where
   no player owns the winning team.
@@ -261,11 +268,12 @@ division only ever influences their score via the rivalry bonus.
 
 ## Assumptions
 
-- "Rival" in the scoring rule (FR-006) means any other player who shares the
-  winning team owner's division and owns the losing team — not a separately
+- "Rival" in the scoring rule (FR-006) means any player who shares the
+  winning team owner's division and owns the losing team, including the
+  winning team's owner themself (cannibalization) — not a separately
   designated 1:1 rival relationship between specific players. A division
-  with only one player therefore has no possible rivals, per the Edge Cases
-  section.
+  with only one player who does not also own the losing team therefore has
+  no possible rivals, per the Edge Cases section.
 - Each player owns a fixed roster of exactly 10 FBS teams for the season.
   Team ownership is unique only *within* a division (FR-017) — the same team
   may be owned by different players in different divisions simultaneously.

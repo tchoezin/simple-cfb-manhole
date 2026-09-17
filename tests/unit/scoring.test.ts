@@ -103,6 +103,27 @@ describe("scorePlayerGame", () => {
     expect(scorePlayerGame(alice, game, teams, ownership)).toBe(3);
   });
 
+  it("awards 3 points (cannibalization) when the player owns both the winner and the loser", () => {
+    const teams = makeTeams([
+      ["gt", "acc"],
+      ["oregon", "big-ten"],
+    ]);
+    const cannibal: Player = {
+      id: "carl",
+      name: "Carl",
+      divisionId: "east",
+      ownedTeamIds: ["gt", "oregon"],
+    };
+    const game = makeGame({
+      id: "g3b",
+      completed: true,
+      winnerTeamId: "gt",
+      loserTeamId: "oregon",
+    });
+    const ownership = buildDivisionOwnership([cannibal]);
+    expect(scorePlayerGame(cannibal, game, teams, ownership)).toBe(3);
+  });
+
   it("does not apply the rivalry bonus when the loser is owned by a player in a different division", () => {
     const teams = makeTeams([
       ["gt", "acc"],
