@@ -134,15 +134,23 @@ export function computeLeaderboard(
   const totals = players.map((player) => {
     const seenGameIds = new Set<string>();
     let total = 0;
+    let threePointWins = 0;
+    let twoPointWins = 0;
+    let onePointWins = 0;
     for (const teamId of player.ownedTeamIds) {
       const games = gamesByTeam.get(teamId) ?? [];
       for (const game of games) {
         if (seenGameIds.has(game.id)) continue;
         seenGameIds.add(game.id);
-        total += scorePlayerGame(player, game, teams, divisionOwnership);
+        const points = scorePlayerGame(player, game, teams, divisionOwnership);
+        total += points;
+        if (points === 3) threePointWins += 1;
+        else if (points === 2) twoPointWins += 1;
+        else if (points === 1) onePointWins += 1;
       }
     }
-    return { player, total };
+    const totalWins = threePointWins + twoPointWins + onePointWins;
+    return { player, total, threePointWins, twoPointWins, onePointWins, totalWins };
   });
 
   const sorted = [...totals].sort((a, b) => {
@@ -160,7 +168,15 @@ export function computeLeaderboard(
       rank = index + 1;
       previousTotal = entry.total;
     }
-    entries.push({ player: entry.player, total: entry.total, rank });
+    entries.push({
+      player: entry.player,
+      total: entry.total,
+      rank,
+      threePointWins: entry.threePointWins,
+      twoPointWins: entry.twoPointWins,
+      onePointWins: entry.onePointWins,
+      totalWins: entry.totalWins,
+    });
   });
 
   return { entries, computedAt: new Date().toISOString() };

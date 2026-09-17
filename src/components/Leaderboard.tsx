@@ -169,6 +169,10 @@ export function Leaderboard({
           <tr>
             <th scope="col">Rank</th>
             <th scope="col">Player (Division)</th>
+            <th scope="col">3 pt</th>
+            <th scope="col">2 pt</th>
+            <th scope="col">1 pt</th>
+            <th scope="col">Total Wins</th>
             <th scope="col">Score</th>
           </tr>
         </thead>
@@ -218,6 +222,10 @@ export function Leaderboard({
                     )}
                   </span>
                 </td>
+                <td>{entry.threePointWins}</td>
+                <td>{entry.twoPointWins}</td>
+                <td>{entry.onePointWins}</td>
+                <td>{entry.totalWins}</td>
                 <td>{entry.total}</td>
               </tr>
             );
