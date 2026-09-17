@@ -87,3 +87,18 @@
   width: 1%;
   white-space: nowrap;
 }
+
+/* 3 pt, 2 pt, 1 pt, and Total Wins (columns 3-6, 009-leaderboard-score-columns)
+   are narrow numeric columns — shrink to fit content instead of sharing in
+   the leftover-width stretch reserved for Score above. */
+.leaderboard th:nth-child(3),
+.leaderboard td:nth-child(3),
+.leaderboard th:nth-child(4),
+.leaderboard td:nth-child(4),
+.leaderboard th:nth-child(5),
+.leaderboard td:nth-child(5),
+.leaderboard th:nth-child(6),
+.leaderboard td:nth-child(6) {
+  width: 1%;
+  white-space: nowrap;
+}

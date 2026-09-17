@@ -98,6 +98,14 @@ export interface LeaderboardEntry {
   total: number;
   /** Standard competition ranking: 1, 2, 2, 4, ... (ties share rank). */
   rank: number;
+  /** Count of wins scored at 3 points (rivalry/cannibalization). */
+  threePointWins: number;
+  /** Count of wins scored at 2 points (same-conference). */
+  twoPointWins: number;
+  /** Count of wins scored at 1 point (default). */
+  onePointWins: number;
+  /** threePointWins + twoPointWins + onePointWins. */
+  totalWins: number;
 }
 
 /** The full computed leaderboard result, including staleness metadata. */

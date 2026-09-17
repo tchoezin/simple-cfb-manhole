@@ -362,4 +362,69 @@ describe("computeLeaderboard", () => {
     expect(result.entries.every((e) => e.total === 0)).toBe(true);
     expect(result.entries).toHaveLength(3);
   });
+
+  // --- win-tier breakdown (009-leaderboard-score-columns, SC-001/SC-002) ---
+
+  it("tallies win-tier counts that sum to totalWins and reconcile with total", () => {
+    const teams = makeTeams([
+      ["gt", "acc"],
+      ["duke", "acc"], // owned by bob (same division as alice) -> rivalry (3)
+      ["unc", "acc"], // not owned by anyone in this fixture -> conference (2)
+      ["oregon", "big-ten"], // not owned, different conference -> default (1)
+    ]);
+    const alex: Player = {
+      id: "alex",
+      name: "Alex",
+      divisionId: "east",
+      ownedTeamIds: ["gt"],
+    };
+    const gamesByTeam = new Map<string, Game[]>([
+      [
+        "gt",
+        [
+          makeGame({
+            id: "g1",
+            completed: true,
+            winnerTeamId: "gt",
+            loserTeamId: "duke",
+          }),
+          makeGame({
+            id: "g2",
+            completed: true,
+            winnerTeamId: "gt",
+            loserTeamId: "unc",
+          }),
+          makeGame({
+            id: "g3",
+            completed: true,
+            winnerTeamId: "gt",
+            loserTeamId: "oregon",
+          }),
+        ],
+      ],
+    ]);
+    const result = computeLeaderboard([alex, bob], divisions, teams, gamesByTeam);
+    const entry = result.entries.find((e) => e.player.id === "alex")!;
+
+    expect(entry.threePointWins).toBe(1);
+    expect(entry.twoPointWins).toBe(1);
+    expect(entry.onePointWins).toBe(1);
+    expect(entry.totalWins).toBe(
+      entry.threePointWins + entry.twoPointWins + entry.onePointWins,
+    );
+    expect(entry.total).toBe(
+      3 * entry.threePointWins + 2 * entry.twoPointWins + 1 * entry.onePointWins,
+    );
+  });
+
+  it("reports 0 (not undefined) for win-tier counts when a player has no wins", () => {
+    const teams = makeTeams([["gt", "acc"]]);
+    const result = computeLeaderboard([alice], divisions, teams, new Map());
+    const entry = result.entries[0];
+
+    expect(entry.threePointWins).toBe(0);
+    expect(entry.twoPointWins).toBe(0);
+    expect(entry.onePointWins).toBe(0);
+    expect(entry.totalWins).toBe(0);
+  });
 });

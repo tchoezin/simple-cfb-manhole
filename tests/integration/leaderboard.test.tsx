@@ -15,6 +15,30 @@ function player(
   return { id, name, divisionId, ownedTeamIds };
 }
 
+function entry(
+  playerObj: Player,
+  total: number,
+  rank: number,
+  wins: {
+    threePointWins?: number;
+    twoPointWins?: number;
+    onePointWins?: number;
+  } = {},
+): LeaderboardEntry {
+  const threePointWins = wins.threePointWins ?? 0;
+  const twoPointWins = wins.twoPointWins ?? 0;
+  const onePointWins = wins.onePointWins ?? 0;
+  return {
+    player: playerObj,
+    total,
+    rank,
+    threePointWins,
+    twoPointWins,
+    onePointWins,
+    totalWins: threePointWins + twoPointWins + onePointWins,
+  };
+}
+
 describe("Header (US1 — brand color refresh)", () => {
   it("renders the CFB Manhole logo image without visible brand text", () => {
     render(<Header />);
@@ -35,8 +59,8 @@ describe("Header (US1 — brand color refresh)", () => {
 describe("Leaderboard (US2 — brand color refresh)", () => {
   it("wraps the table in a scrollable container and keeps rows in a single leaderboard table", () => {
     const entries: LeaderboardEntry[] = [
-      { player: player("alice", "Alice", "east"), total: 12, rank: 1 },
-      { player: player("bob", "Bob", "west"), total: 7, rank: 2 },
+      entry(player("alice", "Alice", "east"), 12, 1),
+      entry(player("bob", "Bob", "west"), 7, 2),
     ];
 
     const { container } = render(<Leaderboard entries={entries} />);
@@ -58,9 +82,9 @@ describe("StaleDataNotice (US2 — brand color refresh)", () => {
 describe("Leaderboard (US1)", () => {
   it("renders every player from fixture data with name + score, correctly ordered", () => {
     const entries: LeaderboardEntry[] = [
-      { player: player("alice", "Alice", "east"), total: 12, rank: 1 },
-      { player: player("bob", "Bob", "west"), total: 7, rank: 2 },
-      { player: player("carol", "Carol", "east"), total: 3, rank: 3 },
+      entry(player("alice", "Alice", "east"), 12, 1),
+      entry(player("bob", "Bob", "west"), 7, 2),
+      entry(player("carol", "Carol", "east"), 3, 3),
     ];
 
     render(<Leaderboard entries={entries} />);
@@ -75,9 +99,9 @@ describe("Leaderboard (US1)", () => {
 
   it("shows tied players adjacent with the same rank", () => {
     const entries: LeaderboardEntry[] = [
-      { player: player("alice", "Alice", "east"), total: 5, rank: 1 },
-      { player: player("bob", "Bob", "west"), total: 5, rank: 1 },
-      { player: player("carol", "Carol", "east"), total: 2, rank: 3 },
+      entry(player("alice", "Alice", "east"), 5, 1),
+      entry(player("bob", "Bob", "west"), 5, 1),
+      entry(player("carol", "Carol", "east"), 2, 3),
     ];
 
     render(<Leaderboard entries={entries} />);
@@ -89,13 +113,62 @@ describe("Leaderboard (US1)", () => {
   });
 });
 
+describe("Leaderboard (win-breakdown columns, 009-leaderboard-score-columns)", () => {
+  it("renders 3 pt, 2 pt, 1 pt, and Total Wins column headers (FR-001–FR-004)", () => {
+    render(<Leaderboard entries={[]} />);
+
+    expect(screen.getByRole("columnheader", { name: "3 pt" })).toBeInTheDocument();
+    expect(screen.getByRole("columnheader", { name: "2 pt" })).toBeInTheDocument();
+    expect(screen.getByRole("columnheader", { name: "1 pt" })).toBeInTheDocument();
+    expect(
+      screen.getByRole("columnheader", { name: "Total Wins" }),
+    ).toBeInTheDocument();
+  });
+
+  it("shows each player's win-tier counts, including 0 for a tier with no wins (FR-001–FR-004, edge case)", () => {
+    const entries: LeaderboardEntry[] = [
+      entry(player("alice", "Alice", "east"), 7, 1, {
+        threePointWins: 2,
+        twoPointWins: 0,
+        onePointWins: 1,
+      }),
+    ];
+
+    render(<Leaderboard entries={entries} />);
+
+    const rows = screen.getAllByRole("row").slice(1);
+    const cells = rows[0].querySelectorAll("td");
+    // Rank, Player (Division), 3 pt, 2 pt, 1 pt, Total Wins, Score
+    expect(cells[2]).toHaveTextContent("2");
+    expect(cells[3]).toHaveTextContent("0");
+    expect(cells[4]).toHaveTextContent("1");
+  });
+
+  it("shows Total Wins equal to the sum of the 3 pt, 2 pt, and 1 pt columns (SC-001)", () => {
+    const entries: LeaderboardEntry[] = [
+      entry(player("alice", "Alice", "east"), 7, 1, {
+        threePointWins: 2,
+        twoPointWins: 0,
+        onePointWins: 1,
+      }),
+      entry(player("bob", "Bob", "west"), 0, 2),
+    ];
+
+    render(<Leaderboard entries={entries} />);
+
+    const rows = screen.getAllByRole("row").slice(1);
+    expect(rows[0].querySelectorAll("td")[5]).toHaveTextContent("3");
+    expect(rows[1].querySelectorAll("td")[5]).toHaveTextContent("0");
+  });
+});
+
 describe("Leaderboard (US3 — divisions never split the display)", () => {
   it("renders players from multiple divisions, including a team owned in two divisions, as one combined list with no division grouping", () => {
     const entries: LeaderboardEntry[] = [
-      { player: player("alice", "Alice", "east"), total: 3, rank: 1 },
-      { player: player("dan", "Dan", "west"), total: 3, rank: 1 }, // owns the same team as alice in a different division
-      { player: player("bob", "Bob", "east"), total: 1, rank: 3 },
-      { player: player("erin", "Erin", "west"), total: 0, rank: 4 },
+      entry(player("alice", "Alice", "east"), 3, 1),
+      entry(player("dan", "Dan", "west"), 3, 1), // owns the same team as alice in a different division
+      entry(player("bob", "Bob", "east"), 1, 3),
+      entry(player("erin", "Erin", "west"), 0, 4),
     ];
 
     render(<Leaderboard entries={entries} />);
@@ -129,7 +202,7 @@ describe("Leaderboard (US1 — merged Player (Division) column, 008-player-divis
 
   it("shows each player's name followed by a space and their resolved division in parentheses (FR-003, FR-004)", () => {
     const entries: LeaderboardEntry[] = [
-      { player: player("red", "Red", "division-4"), total: 12, rank: 1 },
+      entry(player("red", "Red", "division-4"), 12, 1),
     ];
     const divisionsById = new Map([["division-4", { id: "division-4", name: "4" }]]);
 
@@ -141,7 +214,7 @@ describe("Leaderboard (US1 — merged Player (Division) column, 008-player-divis
 
   it("falls back to the raw division id when it doesn't match any known division (FR-004 edge case)", () => {
     const entries: LeaderboardEntry[] = [
-      { player: player("alice", "Alice", "unknown-division"), total: 12, rank: 1 },
+      entry(player("alice", "Alice", "unknown-division"), 12, 1),
     ];
     const divisionsById = new Map([["division-1", { id: "division-1", name: "Division 1" }]]);
 
@@ -153,9 +226,9 @@ describe("Leaderboard (US1 — merged Player (Division) column, 008-player-divis
 
   it("does not change rank order or alphabetical tie-breaking after merging the column (FR-006, SC-002)", () => {
     const entries: LeaderboardEntry[] = [
-      { player: player("bob", "Bob", "division-1"), total: 5, rank: 1 },
-      { player: player("alice", "Alice", "division-1"), total: 5, rank: 1 },
-      { player: player("carol", "Carol", "division-1"), total: 2, rank: 3 },
+      entry(player("bob", "Bob", "division-1"), 5, 1),
+      entry(player("alice", "Alice", "division-1"), 5, 1),
+      entry(player("carol", "Carol", "division-1"), 2, 3),
     ];
     const divisionsById = new Map([["division-1", { id: "division-1", name: "Division 1" }]]);
 
@@ -180,7 +253,7 @@ describe("Leaderboard (US1 — roster hover preview, 003-hover-player-roster)", 
 
   function renderWithAlice(ownedTeamIds: string[] = ["59", "333"]) {
     const entries: LeaderboardEntry[] = [
-      { player: player("alice", "Alice", "east", ownedTeamIds), total: 12, rank: 1 },
+      entry(player("alice", "Alice", "east", ownedTeamIds), 12, 1),
     ];
     const teamNamesById = new Map([
       ["59", "Georgia Tech"],
@@ -303,8 +376,8 @@ describe("Leaderboard (US1 — roster hover preview, 003-hover-player-roster)", 
 
   it("closes the first dialog and opens the new one when hovering a different player (FR-008)", () => {
     const entries: LeaderboardEntry[] = [
-      { player: player("alice", "Alice", "east", ["59"]), total: 12, rank: 1 },
-      { player: player("bob", "Bob", "west", ["333"]), total: 7, rank: 2 },
+      entry(player("alice", "Alice", "east", ["59"]), 12, 1),
+      entry(player("bob", "Bob", "west", ["333"]), 7, 2),
     ];
     const teamNamesById = new Map([
       ["59", "Georgia Tech"],
@@ -389,7 +462,7 @@ describe("Leaderboard (US1 — hover progress indicator, 005-player-hover-indica
 
   function renderWithAlice() {
     const entries: LeaderboardEntry[] = [
-      { player: player("alice", "Alice", "east", ["59"]), total: 12, rank: 1 },
+      entry(player("alice", "Alice", "east", ["59"]), 12, 1),
     ];
     const teamNamesById = new Map([["59", "Georgia Tech"]]);
     render(<Leaderboard entries={entries} teamNamesById={teamNamesById} />);
