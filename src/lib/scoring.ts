@@ -79,8 +79,9 @@ export function findDivisionOwnershipCollisions(
 /**
  * Scores one player's outcome for one game (FR-004–FR-007). Precedence:
  * rivalry (3) overrides same-conference (2), which overrides default (1).
- * Returns 0 if the game isn't finished or the player doesn't own the
- * winning team.
+ * Rivalry also covers cannibalization — the player owning both the winning
+ * and losing team. Returns 0 if the game isn't finished or the player
+ * doesn't own the winning team.
  */
 export function scorePlayerGame(
   player: Player,
@@ -98,8 +99,9 @@ export function scorePlayerGame(
   const rivalOwnerId = divisionOwnership
     .get(player.divisionId)
     ?.get(game.loserTeamId);
-  if (rivalOwnerId && rivalOwnerId !== player.id) {
-    return 3; // FR-006 — overrides the same-conference bonus
+  if (rivalOwnerId) {
+    return 3; // FR-006 — overrides the same-conference bonus; also
+    // applies to cannibalization (player owns both teams in the game)
   }
 
   const winnerConferenceId = teams.get(game.winnerTeamId)?.conferenceId;

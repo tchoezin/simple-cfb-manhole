@@ -71,6 +71,8 @@ Given `tests/unit/scoring.test.ts` fixtures, confirm:
 - An owned team wins against a team owned by another player in the same
   division → 3 points (overrides the conference bonus even if it would also
   apply).
+- An owned team wins against another team also owned by that same player
+  ("cannibalization") → 3 points, same as the division-rival case.
 - An owned team loses, or the game hasn't finished → 0 points for that game.
 - The same team is owned by different players in different divisions and
   wins → each owner scores independently, using their own division's
