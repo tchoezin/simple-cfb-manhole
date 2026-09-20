@@ -427,4 +427,369 @@ describe("computeLeaderboard", () => {
     expect(entry.onePointWins).toBe(0);
     expect(entry.totalWins).toBe(0);
   });
+
+  // --- total-wins tiebreaker (010-total-wins-tiebreaker) -------------------
+
+  it("ranks a Score tie by Total Wins, higher Total Wins first", () => {
+    const teams = makeTeams([
+      ["gt", "acc"],
+      ["duke", "acc"], // owned by fred (same division as dave) -> rivalry (3)
+      ["unc", "acc"],
+      ["ncstate", "acc"],
+      ["wake", "acc"],
+      ["oregon", "big-ten"],
+      ["utah", "big-ten"],
+      ["stanford", "big-ten"],
+    ]);
+    const dave: Player = {
+      id: "dave",
+      name: "Dave",
+      divisionId: "east",
+      ownedTeamIds: ["gt"],
+    };
+    const fred: Player = {
+      id: "fred",
+      name: "Fred",
+      divisionId: "east",
+      ownedTeamIds: ["duke"],
+    };
+    const erin: Player = {
+      id: "erin",
+      name: "Erin",
+      divisionId: "east",
+      ownedTeamIds: ["unc", "ncstate", "wake"],
+    };
+    const gamesByTeam = new Map<string, Game[]>([
+      [
+        "gt",
+        [
+          makeGame({
+            id: "g1",
+            completed: true,
+            winnerTeamId: "gt",
+            loserTeamId: "duke",
+          }),
+        ],
+      ],
+      [
+        "unc",
+        [
+          makeGame({
+            id: "g2",
+            completed: true,
+            winnerTeamId: "unc",
+            loserTeamId: "oregon",
+          }),
+        ],
+      ],
+      [
+        "ncstate",
+        [
+          makeGame({
+            id: "g3",
+            completed: true,
+            winnerTeamId: "ncstate",
+            loserTeamId: "utah",
+          }),
+        ],
+      ],
+      [
+        "wake",
+        [
+          makeGame({
+            id: "g4",
+            completed: true,
+            winnerTeamId: "wake",
+            loserTeamId: "stanford",
+          }),
+        ],
+      ],
+    ]);
+    const result = computeLeaderboard(
+      [dave, fred, erin],
+      divisions,
+      teams,
+      gamesByTeam,
+    );
+
+    const daveEntry = result.entries.find((e) => e.player.id === "dave")!;
+    const erinEntry = result.entries.find((e) => e.player.id === "erin")!;
+    expect(daveEntry.total).toBe(3);
+    expect(daveEntry.totalWins).toBe(1);
+    expect(erinEntry.total).toBe(3);
+    expect(erinEntry.totalWins).toBe(3);
+    expect(erinEntry.rank).toBeLessThan(daveEntry.rank);
+    expect(erinEntry.rank).not.toBe(daveEntry.rank);
+  });
+
+  it("keeps Score as the primary sort key regardless of Total Wins", () => {
+    // All loser teams below are unowned, so every win scores purely by the
+    // conference/default rule — no rivalry or cannibalization bonus applies.
+    const teams = makeTeams([
+      ["gt", "acc"],
+      ["duke", "acc"],
+      ["unc", "acc"],
+      ["clemson", "acc"],
+      ["miami", "acc"],
+      ["ncstate", "acc"], // unowned loser
+      ["wake", "acc"], // unowned loser
+      ["oregon", "big-ten"], // unowned loser
+      ["utah", "big-ten"], // unowned loser
+      ["stanford", "big-ten"], // unowned loser
+    ]);
+    const dave: Player = {
+      id: "dave",
+      name: "Dave",
+      divisionId: "east",
+      ownedTeamIds: ["gt", "duke"], // two same-conference wins -> total 4, totalWins 2
+    };
+    const erin: Player = {
+      id: "erin",
+      name: "Erin",
+      divisionId: "west",
+      // three different-conference wins -> total 3, totalWins 3
+      ownedTeamIds: ["unc", "clemson", "miami"],
+    };
+    const gamesByTeam = new Map<string, Game[]>([
+      [
+        "gt",
+        [
+          makeGame({
+            id: "g1",
+            completed: true,
+            winnerTeamId: "gt",
+            loserTeamId: "ncstate",
+          }),
+        ],
+      ],
+      [
+        "duke",
+        [
+          makeGame({
+            id: "g2",
+            completed: true,
+            winnerTeamId: "duke",
+            loserTeamId: "wake",
+          }),
+        ],
+      ],
+      [
+        "unc",
+        [
+          makeGame({
+            id: "g3",
+            completed: true,
+            winnerTeamId: "unc",
+            loserTeamId: "oregon",
+          }),
+        ],
+      ],
+      [
+        "clemson",
+        [
+          makeGame({
+            id: "g4",
+            completed: true,
+            winnerTeamId: "clemson",
+            loserTeamId: "utah",
+          }),
+        ],
+      ],
+      [
+        "miami",
+        [
+          makeGame({
+            id: "g5",
+            completed: true,
+            winnerTeamId: "miami",
+            loserTeamId: "stanford",
+          }),
+        ],
+      ],
+    ]);
+    const result = computeLeaderboard(
+      [dave, erin],
+      divisions,
+      teams,
+      gamesByTeam,
+    );
+
+    const daveEntry = result.entries.find((e) => e.player.id === "dave")!;
+    const erinEntry = result.entries.find((e) => e.player.id === "erin")!;
+    expect(daveEntry.total).toBe(4);
+    expect(daveEntry.totalWins).toBe(2);
+    expect(erinEntry.total).toBe(3);
+    expect(erinEntry.totalWins).toBe(3);
+    expect(daveEntry.rank).toBeLessThan(erinEntry.rank);
+  });
+
+  it("keeps a full tie (same Score and Total Wins) on one shared rank, ordered alphabetically", () => {
+    const teams = makeTeams([
+      ["gt", "acc"],
+      ["oregon", "big-ten"],
+      ["duke", "acc"],
+      ["utah", "big-ten"],
+    ]);
+    const zoe: Player = {
+      id: "zoe",
+      name: "Zoe",
+      divisionId: "east",
+      ownedTeamIds: ["gt"],
+    };
+    const amy: Player = {
+      id: "amy",
+      name: "Amy",
+      divisionId: "west",
+      ownedTeamIds: ["duke"],
+    };
+    const gamesByTeam = new Map<string, Game[]>([
+      [
+        "gt",
+        [
+          makeGame({
+            id: "g1",
+            completed: true,
+            winnerTeamId: "gt",
+            loserTeamId: "oregon",
+          }),
+        ],
+      ],
+      [
+        "duke",
+        [
+          makeGame({
+            id: "g2",
+            completed: true,
+            winnerTeamId: "duke",
+            loserTeamId: "utah",
+          }),
+        ],
+      ],
+    ]);
+    const result = computeLeaderboard(
+      [zoe, amy],
+      divisions,
+      teams,
+      gamesByTeam,
+    );
+
+    expect(result.entries.map((e) => e.player.id)).toEqual(["amy", "zoe"]);
+    expect(result.entries.map((e) => e.rank)).toEqual([1, 1]);
+  });
+
+  it("orders a three-way Score tie entirely by Total Wins, giving each a distinct rank", () => {
+    const teams = makeTeams([
+      ["gt", "acc"],
+      ["duke", "acc"], // owned by a division rival of p1 -> rivalry (3)
+      ["unc", "acc"],
+      ["oregon", "big-ten"],
+      ["ncstate", "acc"],
+      ["utah", "big-ten"],
+      ["wake", "acc"],
+      ["stanford", "big-ten"],
+      ["colorado", "big-ten"],
+    ]);
+    const rival: Player = {
+      id: "rival",
+      name: "Rival",
+      divisionId: "east",
+      ownedTeamIds: ["duke"],
+    };
+    const p1: Player = {
+      id: "p1",
+      name: "P1",
+      divisionId: "east",
+      ownedTeamIds: ["gt"], // 1 rivalry win -> total 3, totalWins 1
+    };
+    const p2: Player = {
+      id: "p2",
+      name: "P2",
+      divisionId: "west",
+      ownedTeamIds: ["unc", "ncstate"], // 1 conference + 1 default -> total 3, totalWins 2
+    };
+    const p3: Player = {
+      id: "p3",
+      name: "P3",
+      divisionId: "west",
+      ownedTeamIds: ["wake"], // will get 3 default wins below -> total 3, totalWins 3
+    };
+    const gamesByTeam = new Map<string, Game[]>([
+      [
+        "gt",
+        [
+          makeGame({
+            id: "g1",
+            completed: true,
+            winnerTeamId: "gt",
+            loserTeamId: "duke",
+          }),
+        ],
+      ],
+      [
+        "unc",
+        [
+          // duke (owned by rival, a different division than p2) is not a
+          // rivalry target for p2 -> same-conference bonus only (2 pts).
+          makeGame({
+            id: "g2",
+            completed: true,
+            winnerTeamId: "unc",
+            loserTeamId: "duke",
+          }),
+        ],
+      ],
+      [
+        "ncstate",
+        [
+          makeGame({
+            id: "g2b",
+            completed: true,
+            winnerTeamId: "ncstate",
+            loserTeamId: "colorado", // different conference, unowned -> 1 pt
+          }),
+        ],
+      ],
+      [
+        "wake",
+        [
+          makeGame({
+            id: "g3",
+            completed: true,
+            winnerTeamId: "wake",
+            loserTeamId: "oregon",
+          }),
+          makeGame({
+            id: "g4",
+            completed: true,
+            winnerTeamId: "wake",
+            loserTeamId: "utah",
+          }),
+          makeGame({
+            id: "g5",
+            completed: true,
+            winnerTeamId: "wake",
+            loserTeamId: "stanford",
+          }),
+        ],
+      ],
+    ]);
+    const result = computeLeaderboard(
+      [rival, p1, p2, p3],
+      divisions,
+      teams,
+      gamesByTeam,
+    );
+
+    const byId = (id: string) => result.entries.find((e) => e.player.id === id)!;
+    expect(byId("p1").total).toBe(3);
+    expect(byId("p2").total).toBe(3);
+    expect(byId("p3").total).toBe(3);
+    expect(byId("p1").totalWins).toBe(1);
+    expect(byId("p2").totalWins).toBe(2);
+    expect(byId("p3").totalWins).toBe(3);
+
+    const ranks = [byId("p3").rank, byId("p2").rank, byId("p1").rank];
+    expect(ranks[0]).toBeLessThan(ranks[1]);
+    expect(ranks[1]).toBeLessThan(ranks[2]);
+  });
 });

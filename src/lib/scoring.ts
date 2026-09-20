@@ -155,18 +155,26 @@ export function computeLeaderboard(
 
   const sorted = [...totals].sort((a, b) => {
     if (b.total !== a.total) return b.total - a.total;
-    // Tied players share a rank (FR-010); order them alphabetically by name
-    // for a stable, non-arbitrary display order — this never changes rank.
+    // Score ties are broken by Total Wins (010-total-wins-tiebreaker).
+    if (b.totalWins !== a.totalWins) return b.totalWins - a.totalWins;
+    // Players fully tied (Score and Total Wins) share a rank; order them
+    // alphabetically by name for a stable, non-arbitrary display order.
     return a.player.name.localeCompare(b.player.name);
   });
 
   const entries: LeaderboardEntry[] = [];
   let rank = 0;
   let previousTotal: number | null = null;
+  let previousTotalWins: number | null = null;
   sorted.forEach((entry, index) => {
-    if (previousTotal === null || entry.total !== previousTotal) {
+    if (
+      previousTotal === null ||
+      entry.total !== previousTotal ||
+      entry.totalWins !== previousTotalWins
+    ) {
       rank = index + 1;
       previousTotal = entry.total;
+      previousTotalWins = entry.totalWins;
     }
     entries.push({
       player: entry.player,
